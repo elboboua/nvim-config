@@ -93,6 +93,14 @@ vim.g.maplocalleader = ' '
 -- Set to true if you have a Nerd Font installed and selected in the terminal
 vim.g.have_nerd_font = true
 
+-- Autoformat on save
+vim.g.autoformat = true
+-- keymaps to toggle toggle autoformat
+vim.keymap.set('n', '<leader>af', function()
+  vim.g.autoformat = not vim.g.autoformat
+  print('Autoformat is now ' .. (vim.g.autoformat and 'enabled' or 'disabled'))
+end, { desc = 'Toggle [A]uto[F]ormat' })
+
 -- [[ Setting options ]]
 -- See `:help vim.opt`
 -- NOTE: You can change these options as you wish!
@@ -703,6 +711,11 @@ require('lazy').setup({
         -- have a well standardized coding style. You can add additional
         -- languages here or re-enable it for the disabled ones.
         local disable_filetypes = { c = true, cpp = true }
+        -- Add check to see if autosave is enabled
+        if vim.g.autoformat == false then
+          return false
+        end
+
         return {
           timeout_ms = 5000,
           lsp_fallback = not disable_filetypes[vim.bo[bufnr].filetype],
