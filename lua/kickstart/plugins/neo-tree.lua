@@ -11,10 +11,14 @@ return {
   },
   cmd = 'Neotree',
   keys = {
-    { '\\', ':Neotree float<CR>', desc = 'NeoTree float' },
+    { '\\', ':Neotree left<CR>', desc = 'NeoTree left' },
   },
   opts = {
     filesystem = {
+      filtered_items = {
+        hide_dotfiles = false,
+        hide_gitignored = false,
+      },
       window = {
         mappings = {
           ['\\'] = 'close_window',
