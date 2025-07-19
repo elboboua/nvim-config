@@ -19,7 +19,10 @@ return {
 
     -- Installs the debug adapters for you
     'williamboman/mason.nvim',
-    'jay-babu/mason-nvim-dap.nvim',
+    {
+      'jay-babu/mason-nvim-dap.nvim',
+      commit = 'c2961aeb29c968e9b37de9ff87bf1e005acccf14',
+    },
 
     -- Add your own debuggers here
     'leoluz/nvim-dap-go',
