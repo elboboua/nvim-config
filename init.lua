@@ -298,6 +298,11 @@ require('lazy').setup({
       vim.keymap.set('v', '<leader>ce', function()
         chat.ask 'Explain this to me'
       end, { desc = 'Open [C]opilot [E]xplain' })
+
+      vim.keymap.set('v', '<leader>cc', function()
+        -- does :CopilotChat and allow for a custom prompt
+        vim.api.nvim_feedkeys(':CopilotChat ', 'n', false)
+      end, { desc = 'Open [C]opilot [C]chat' })
     end,
   },
   -- NOTE: Plugins can also be added by using a table,
@@ -450,6 +455,10 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>bp', function()
         vim.cmd 'bprevious'
       end, { desc = '[B]uffer [P]revious' })
+
+      vim.keymap.set('n', '<leader>bt', function()
+        vim.cmd 'bprevious'
+      end, { desc = '[B]uffer [t]oggle' })
 
       -- Slightly advanced example of overriding default behavior and theme
       vim.keymap.set('n', '<leader>/', function()
