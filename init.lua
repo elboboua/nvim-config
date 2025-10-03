@@ -259,12 +259,22 @@ require('lazy').setup({
   -- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
   'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
   -- NOTE: Copilot plugin
-  'github/copilot.vim',
+  {
+    'github/copilot.vim',
+    config = function()
+      vim.g.copilot_enabled = 0
+
+      vim.keymap.set('n', '<leader>ct', function()
+        vim.g.copilot_enabled = vim.g.copilot_enabled == 0 and 1 or 0
+        vim.notify(vim.g.copilot_enabled == 1 and 'Copilot enabled' or 'Copilot disabled')
+      end, { desc = 'Open [C]opilot [T]oggle' })
+    end,
+  },
   {
     'CopilotC-Nvim/CopilotChat.nvim',
     branch = 'main',
     dependencies = {
-      { 'zbirenbaum/copilot.lua' }, -- or github/copilot.vim
+      { 'github/copilot.vim' }, -- or github/copilot.vim
       { 'nvim-lua/plenary.nvim' }, -- for curl, log wrapper
     },
     build = 'make tiktoken', -- Only on MacOS or Linux
