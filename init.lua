@@ -99,10 +99,10 @@ vim.g.have_nerd_font = true
 -- Autoformat on save
 vim.g.autoformat = true
 -- keymaps to toggle toggle autoformat
-vim.keymap.set('n', '<leader>af', function()
+vim.keymap.set('n', '<leader>tf', function()
   vim.g.autoformat = not vim.g.autoformat
   print('Autoformat is now ' .. (vim.g.autoformat and 'enabled' or 'disabled'))
-end, { desc = 'Toggle [A]uto[F]ormat' })
+end, { desc = 'Toggle [T]oggle [F]ormat' })
 
 -- [[ Setting options ]]
 -- See `:help vim.o`
@@ -280,11 +280,20 @@ require('lazy').setup({
   {
     'github/copilot.vim',
     config = function()
-      vim.g.copilot_enabled = 0
-      vim.keymap.set('n', '<leader>ct', function()
+      -- disable tab mapping and use <c-g> instead to accept suggestions
+      vim.g.copilot_no_tab_map = true
+      vim.api.nvim_set_keymap('i', '<C-g>', 'copilot#Accept("<CR>")', { silent = true, expr = true })
+
+      vim.keymap.set('i', '<C-Space>', '<Plug>(copilot-suggest)')
+
+      vim.keymap.set('n', '<leader>cp', '<Cmd>Copilot panel<CR>', { desc = 'Open [C]opilot [P]anel' })
+
+      -- enable copilot by default
+      vim.g.copilot_enabled = 1
+      vim.keymap.set('n', '<leader>tc', function()
         vim.g.copilot_enabled = vim.g.copilot_enabled == 0 and 1 or 0
         vim.notify(vim.g.copilot_enabled == 1 and 'Copilot enabled' or 'Copilot disabled')
-      end, { desc = 'Open [C]opilot [T]oggle' })
+      end, { desc = 'Open [T]oggle [C]opilot' })
     end,
   },
   {
@@ -319,7 +328,7 @@ require('lazy').setup({
       vim.keymap.set('v', '<leader>cc', function()
         -- does :CopilotChat and allow for a custom prompt
         vim.api.nvim_feedkeys(':CopilotChat ', 'n', false)
-      end, { desc = 'Open [C]opilot [C]chat' })
+      end, { desc = 'Create [C]opilot [C]chat visual prompt' })
     end,
   },
   -- NOTE: Plugins can also be added by using a table,
