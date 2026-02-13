@@ -20,4 +20,5 @@ return {
     },
   },
   { 'tpope/vim-rhubarb', dependencies = { 'tpope/vim-fugitive' } }, -- adds GBrowse handler for GitHub
+  { 'shumphrey/fugitive-gitlab.vim', dependencies = { 'tpope/vim-fugitive' } },
 }
