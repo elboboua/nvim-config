@@ -11,10 +11,14 @@ return {
   },
   lazy = false,
   keys = {
-    { '\\', ':Neotree left<CR>', desc = 'NeoTree left' },
+    { '\\', ':Neotree reveal left<CR>', desc = 'NeoTree left' },
   },
   opts = {
     filesystem = {
+      follow_current_file = {
+        enabled = true, -- focus/reveal the active buffer’s file while the tree is open
+        leave_dirs_open = false, -- optional: whether auto-expanded dirs stay open
+      },
       filtered_items = {
         hide_dotfiles = false,
         hide_gitignored = false,
