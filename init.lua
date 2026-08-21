@@ -184,6 +184,17 @@ vim.o.confirm = true
 --  See `:help hlsearch`
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 
+vim.keymap.set('n', '<leader>yn', function()
+  local path = vim.api.nvim_buf_get_name(0)
+  if path == '' then
+    vim.notify('Current buffer has no file name', vim.log.levels.ERROR)
+    return
+  end
+
+  vim.fn.setreg('+', path)
+  vim.notify('Copied file path: ' .. path)
+end, { desc = '[Y]ank file [N]ame' })
+
 -- Diagnostic keymaps
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
 -- toggle diagnostics: if open close it, if closed open it
@@ -245,6 +256,45 @@ vim.api.nvim_create_autocmd('FileType', {
   pattern = 'python',
   command = 'setlocal colorcolumn=72,79',
   group = 'python_rulers',
+})
+
+-- Reload buffers when files change on disk (e.g. when a coding agent edits them).
+vim.o.autoread = true
+vim.api.nvim_create_autocmd({ 'FocusGained', 'BufEnter', 'CursorHold', 'CursorHoldI', 'TermLeave' }, {
+  group = vim.api.nvim_create_augroup('auto-checktime', { clear = true }),
+  callback = function()
+    if vim.fn.mode() ~= 'c' and vim.fn.getcmdwintype() == '' then
+      vim.cmd 'checktime'
+    end
+  end,
+})
+vim.api.nvim_create_autocmd('FileChangedShellPost', {
+  group = vim.api.nvim_create_augroup('auto-checktime-notify', { clear = true }),
+  callback = function()
+    vim.notify('File changed on disk. Buffer reloaded.', vim.log.levels.INFO)
+  end,
+})
+
+-- The autocmds above never fire while the cursor stays inside a terminal (e.g. an agent
+-- split) in terminal-mode, so file buffers in other windows don't reload.
+-- Poll `checktime` on a timer while in terminal-mode to catch on-disk edits there too.
+local checktime_timer = (vim.uv or vim.loop).new_timer()
+local function poll_checktime()
+  if vim.fn.mode() ~= 'c' and vim.fn.getcmdwintype() == '' then
+    vim.cmd 'checktime'
+  end
+end
+vim.api.nvim_create_autocmd('TermEnter', {
+  group = vim.api.nvim_create_augroup('auto-checktime-terminal', { clear = true }),
+  callback = function()
+    checktime_timer:start(1000, 1000, vim.schedule_wrap(poll_checktime))
+  end,
+})
+vim.api.nvim_create_autocmd('TermLeave', {
+  group = 'auto-checktime-terminal',
+  callback = function()
+    checktime_timer:stop()
+  end,
 })
 
 -- [[ Install `lazy.nvim` plugin manager ]]
@@ -1056,30 +1106,48 @@ require('lazy').setup({
   },
   { -- Highlight, edit, and navigate code
     'nvim-treesitter/nvim-treesitter',
+    branch = 'main',
+    lazy = false,
     build = ':TSUpdate',
-    main = 'nvim-treesitter.configs', -- Sets main module to use for opts
-    -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
-    opts = {
-      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' },
-      -- Autoinstall languages that are not installed
-      auto_install = true,
-      highlight = {
-        enable = true,
-        -- Some languages depend on vim's regex highlighting system (such as Ruby) for indent rules.
-        --  If you are experiencing weird indenting issues, add the language to
-        --  the list of additional_vim_regex_highlighting and disabled languages for indent.
-        additional_vim_regex_highlighting = { 'ruby' },
-      },
-      indent = { enable = true, disable = { 'ruby' } },
-    },
-    -- There are additional nvim-treesitter modules that you can use to interact
-    -- with nvim-treesitter. You should go explore a few and see what interests you:
-    --
-    --    - Incremental selection: Included, see `:help nvim-treesitter-incremental-selection-mod`
-    --    - Show your current context: https://github.com/nvim-treesitter/nvim-treesitter-context
-    --    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
-  },
 
+    config = function()
+      local ts = require 'nvim-treesitter'
+
+      ts.setup {
+        install_dir = vim.fn.stdpath 'data' .. '/site',
+      }
+
+      ts.install {
+        'bash',
+        'c',
+        'diff',
+        'html',
+        'lua',
+        'luadoc',
+        'markdown',
+        'markdown_inline',
+        'query',
+        'vim',
+        'vimdoc',
+      }
+
+      vim.api.nvim_create_autocmd('FileType', {
+        pattern = {
+          'bash',
+          'c',
+          'diff',
+          'html',
+          'lua',
+          'markdown',
+          'vim',
+          'vimdoc',
+        },
+        callback = function()
+          vim.treesitter.start()
+        end,
+      })
+    end,
+  },
   -- The following comments only work if you have downloaded the kickstart repo, not just copy pasted the
   -- init.lua. If you want these files, they are in the repository, so you can just download them and
   -- place them in the correct locations.
